@@ -46,7 +46,7 @@ public class categoryServiceImpl implements categoryService {
         //Caterogy is being searched by findById method of Jparepository
         Category savedCategory = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found!!"));
-        category.setCategoryId(categoryId);
+
         savedCategory = categoryRepository.save(category);
         return savedCategory;
     }
