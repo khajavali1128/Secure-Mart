@@ -1,1 +1,6 @@
 /target/
+
+# Ignore IDE files
+.idea/
+*.iml
+.vscode/
