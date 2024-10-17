@@ -3,10 +3,18 @@ package com.kvecommerce.kvecom.service;
 import com.kvecommerce.kvecom.exceptions.APIException;
 import com.kvecommerce.kvecom.exceptions.ResourceNotFoundException;
 import com.kvecommerce.kvecom.model.Category;
+import com.kvecommerce.kvecom.payload.CategoryDTO;
+import com.kvecommerce.kvecom.payload.CategoryResponse;
 import com.kvecommerce.kvecom.repositories.CategoryRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.swing.*;
 import java.util.List;
 
 @Service
@@ -15,41 +23,76 @@ public class categoryServiceImpl implements categoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
+    /*Begin ------ get Categories */
     @Override
-    public List<Category> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
+    public CategoryResponse getAllCategories(Integer pageNo, Integer limit, String sortField, String sortDirection) {
+        Sort sorted = sortDirection.equalsIgnoreCase("asc")
+                ? Sort.by(sortField).ascending()
+                : Sort.by(sortField).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNo, limit, sorted);
+        Page<Category> categoryPage = categoryRepository.findAll(pageDetails);
+        List<Category> categories = categoryPage.getContent();
         if(categories.isEmpty())
             throw  new APIException("No Categories found!!");
 
-        return categoryRepository.findAll(); //returns all the categories present in the database
-    }
+        List<CategoryDTO> categoryDTOs = categories.stream()
+                .map(category -> modelMapper.map(category, CategoryDTO.class))
+                .toList();
 
+        CategoryResponse categoryResponse = new CategoryResponse();
+        categoryResponse.setContent(categoryDTOs);
+        categoryResponse.setPageNo(categoryPage.getNumber());
+        categoryResponse.setPageSize(categoryPage.getSize());
+        categoryResponse.setTotalPages(categoryPage.getTotalPages());
+        categoryResponse.setTotalElements(categoryPage.getTotalElements());
+        categoryResponse.setLastPage(categoryPage.isLast());
+        return categoryResponse;
+    }
+    /* End ------ get Categories */
+
+    /*Begin ------ Create Category */
     @Override
-    public void createCategory(Category category) {
+    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
+
+        Category category = modelMapper.map(categoryDTO, Category.class);
         Category savedCategory = categoryRepository.findByCategoryName(category.getCategoryName());
         if(savedCategory != null) {
             throw new APIException("Category with "+ savedCategory.getCategoryName()+" already exists");
         }
-        categoryRepository.save(category);
-    }
+        Category newCategory = categoryRepository.save(category);
 
+        return modelMapper.map(newCategory, CategoryDTO.class);
+    }
+    /* End ------ get Create Category */
+
+    /*Begin ------Delete Category */
     @Override
-    public String deleteCategory(Long categoryId) {
-        //Caterogy is being searched by findById method of Jparepository
+    public CategoryDTO deleteCategory(Long categoryId) {
+
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
         categoryRepository.delete(category);
-        return "Category deleted!";
-    }
 
+        return modelMapper.map(category, CategoryDTO.class);
+    }
+    /*End ------Delete Category */
+
+    /*Begin ------Update Category */
     @Override
-    public Category updateCategory(Category category, Long categoryId) {
-        //Caterogy is being searched by findById method of Jparepository
-        Category savedCategory = categoryRepository.findById(categoryId)
+    public CategoryDTO updateCategory(CategoryDTO categoryDTO, Long categoryId) {
+
+        Category category = modelMapper.map(categoryDTO, Category.class);
+        categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
 
         category.setCategoryId(categoryId);
-        savedCategory = categoryRepository.save(category);
-        return savedCategory;
+        Category updatedCategory = categoryRepository.save(category);
+
+        return modelMapper.map(updatedCategory, CategoryDTO.class);
     }
+    /*End ------Update Category */
 }
