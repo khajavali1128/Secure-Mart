@@ -1,4 +1,4 @@
-package com.kvecommerce.kvecom.Configurations;
+package com.kvecommerce.kvecom.configurations;
 
 import org.springframework.context.annotation.Configuration;
 

@@ -1,6 +1,6 @@
 package com.kvecommerce.kvecom.controller;
 
-import com.kvecommerce.kvecom.Configurations.AppConstants;
+import com.kvecommerce.kvecom.configurations.AppConstants;
 import com.kvecommerce.kvecom.payload.CategoryDTO;
 import com.kvecommerce.kvecom.payload.CategoryResponse;
 import com.kvecommerce.kvecom.service.categoryService;
