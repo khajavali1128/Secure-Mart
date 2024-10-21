@@ -15,9 +15,9 @@ public class Product {
     private Long productId;
     private String productName;
     private String image;
-    private String productDescription;
-    private Integer productQuantity;
-    private double productPrice;
+    private String description;
+    private Integer quantity;
+    private double Price;
     private double discount;
     private double specialPrice;
 
