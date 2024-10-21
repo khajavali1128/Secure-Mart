@@ -19,7 +19,7 @@ public class CategoryController {
     public categoryService categoryService;
     private ModelMapper modelMapper;
 
-    @GetMapping("/public/category")
+    @GetMapping("/public/categories")
     public ResponseEntity<CategoryResponse> getCategories(
             @RequestParam(name="pageNo", defaultValue = AppConstants.PageNumber, required = false) Integer pageNo,
             @RequestParam(name="pageSize", defaultValue = AppConstants.PageSize, required = false) Integer pageSize,
@@ -30,20 +30,20 @@ public class CategoryController {
         return new ResponseEntity<>(categories, HttpStatus.OK);
     }
 
-    @PostMapping("/public/category")
+    @PostMapping("/public/categories")
     public ResponseEntity<String> setCategories(@Valid @RequestBody CategoryDTO categoryDTO) {
 
         CategoryDTO createdCategoryDTO = categoryService.createCategory(categoryDTO);
         return new ResponseEntity<>("Category Created successfully with Id "+createdCategoryDTO.getCategoryId(),HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/admin/category/{categoryId}")
+    @DeleteMapping("/admin/categories/{categoryId}")
     public ResponseEntity<CategoryDTO> deleteCategory(@PathVariable Long categoryId) {
         CategoryDTO deletedCategoryDTO = categoryService.deleteCategory(categoryId);
         return new ResponseEntity<>(deletedCategoryDTO, HttpStatus.OK);
     }
 
-    @PutMapping("/public/category/{categoryId}")
+    @PutMapping("/public/categories/{categoryId}")
     public ResponseEntity<CategoryDTO> updateCategories(@Valid @RequestBody CategoryDTO categoryDTO,
                                                    @PathVariable Long categoryId) {
         CategoryDTO updatedCategoryDTO = categoryService.updateCategory(categoryDTO, categoryId);
