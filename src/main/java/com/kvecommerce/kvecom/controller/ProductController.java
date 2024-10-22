@@ -1,6 +1,5 @@
 package com.kvecommerce.kvecom.controller;
 
-import com.kvecommerce.kvecom.model.Product;
 import com.kvecommerce.kvecom.payload.ProductDTO;
 import com.kvecommerce.kvecom.payload.ProductResponse;
 import com.kvecommerce.kvecom.service.ProductService;
@@ -17,10 +16,10 @@ public class ProductController {
     ProductService productService;
 
     @PostMapping("/admin/categories/{categoryId}/product")
-    public ResponseEntity<ProductDTO> addProduct(@RequestBody Product product,
+    public ResponseEntity<ProductDTO> addProduct(@RequestBody ProductDTO productDTO,
                                           @PathVariable Long categoryId) {
-    ProductDTO productDTO = productService.addProduct(categoryId, product);
-    return new ResponseEntity<>(productDTO, HttpStatus.CREATED);
+    ProductDTO createdProductDTO = productService.addProduct(categoryId, productDTO);
+    return new ResponseEntity<>(createdProductDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/public/products")
@@ -32,5 +31,25 @@ public class ProductController {
     public ResponseEntity<ProductResponse> getProductByCategory(@PathVariable Long categoryId) {
         ProductResponse productResponse = productService.searchByCategory(categoryId);
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/public/products/keyword/{keyword}")
+    public ResponseEntity<ProductResponse> getProductByKeyword(@PathVariable String keyword) {
+        ProductResponse productResponse = productService.searchProductByKeyword(keyword);
+        return new ResponseEntity<>(productResponse, HttpStatus.FOUND);
+    }
+
+    @PutMapping("/admin/products/{productId}")
+    public ResponseEntity<ProductDTO> updateProduct(@RequestBody ProductDTO productDTO,
+                                                    @PathVariable Long productId) {
+
+        ProductDTO updatedProductDTO = productService.updateProduct(productId, productDTO);
+        return new ResponseEntity<>(updatedProductDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/admin/products/{productId}")
+    public ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long productId) {
+        ProductDTO deletedProductDTO = productService.deleteProduct(productId);
+        return new ResponseEntity<>(deletedProductDTO, HttpStatus.OK);
     }
 }
