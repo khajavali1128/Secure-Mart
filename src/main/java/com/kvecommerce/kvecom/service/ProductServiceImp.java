@@ -10,8 +10,14 @@ import com.kvecommerce.kvecom.repositories.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 
 @Service
@@ -105,6 +111,40 @@ public class ProductServiceImp implements ProductService{
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "product id", productId));
         productRepository.delete(product);
         return modelMapper.map(product, ProductDTO.class);
+    }
+
+    @Override
+    public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
+        Product productFromDB = productRepository.findById(productId)
+                .orElseThrow(()-> new ResourceNotFoundException("Product", "product id", productId));
+
+        String path = "images/";
+        String fileName = updateImage(path, image);
+
+        productFromDB.setImage(fileName);
+        Product savedProduct = productRepository.save(productFromDB);
+        return modelMapper.map(savedProduct, ProductDTO.class);
+
+    }
+
+    private String updateImage(String path, MultipartFile file) throws IOException {
+
+        String originalFilename = file.getOriginalFilename();
+
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String ramdomId = UUID.randomUUID().toString();
+
+        String newFileName = ramdomId.concat(extension);
+
+        String filePath = path + File.separator + newFileName;
+
+        File folder = new File(path);
+        if (!folder.exists())
+            folder.mkdir();
+
+        Files.copy(file.getInputStream(), Paths.get(filePath));
+
+        return newFileName;
     }
 
 
