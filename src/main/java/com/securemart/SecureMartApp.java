@@ -4,11 +4,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class KvEcomApplication {
+public class SecureMartApp {
 
     public static void main(String[] args) {
 
-        SpringApplication.run(KvEcomApplication.class, args);
+        SpringApplication.run(SecureMartApp.class, args);
     }
 
 }

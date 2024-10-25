@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.kvecommerce</groupId>
-    <artifactId>KV-Ecom</artifactId>
+    <artifactId>SecureMart</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>KV-Ecom</name>
     <description>KV-Ecom</description>
