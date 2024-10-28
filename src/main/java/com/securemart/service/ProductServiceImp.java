@@ -8,9 +8,14 @@ import com.securemart.payload.ProductDTO;
 import com.securemart.payload.ProductResponse;
 import com.securemart.repository.CategoryRepository;
 import com.securemart.repository.ProductRepository;
+import org.hibernate.query.SortDirection;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,16 +67,23 @@ public class ProductServiceImp implements ProductService{
     }
 
     @Override
-    public ProductResponse getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        if(products.isEmpty())
-            throw new APIException("No products found");
+    public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortOrder, String sortBy) {
+        Sort sorted = sortOrder.equalsIgnoreCase("asc")
+                ?Sort.by(sortBy).ascending()
+                :Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sorted);
+        Page<Product> products = productRepository.findAll(pageDetails);
+
         List<ProductDTO> productDTOs = products.stream()
                 .map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
 
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOs);
+        productResponse.setPageNo(products.getNumber());
+        productResponse.setPageSize(products.getSize());
+        productResponse.setTotalElements(products.getTotalElements());
+        productResponse.setTotalPages(products.getTotalPages());
         return productResponse;
     }
 

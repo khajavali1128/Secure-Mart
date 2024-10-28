@@ -1,5 +1,6 @@
 package com.securemart.controller;
 
+import com.securemart.config.AppConstants;
 import com.securemart.payload.ProductDTO;
 import com.securemart.payload.ProductResponse;
 import com.securemart.service.ProductService;
@@ -27,8 +28,13 @@ public class ProductController {
     }
 
     @GetMapping("/public/products")
-    public ResponseEntity<ProductResponse> getAllProducts() {
-        ProductResponse productResponse = productService.getAllProducts();
+    public ResponseEntity<ProductResponse> getAllProducts(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy
+    ) {
+        ProductResponse productResponse = productService.getAllProducts(pageNumber,pageSize,sortOrder, sortBy);
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
     @GetMapping("/public/categories/{categoryId}/products")
