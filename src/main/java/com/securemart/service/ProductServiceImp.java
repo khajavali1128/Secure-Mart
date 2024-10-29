@@ -8,7 +8,6 @@ import com.securemart.payload.ProductDTO;
 import com.securemart.payload.ProductResponse;
 import com.securemart.repository.CategoryRepository;
 import com.securemart.repository.ProductRepository;
-import org.hibernate.query.SortDirection;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -66,8 +66,9 @@ public class ProductServiceImp implements ProductService{
         return modelMapper.map(savedProduct, ProductDTO.class);
     }
 
+    //SERVICE - GET ALL PRODUCTS
     @Override
-    public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortOrder, String sortBy) {
+    public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Sort sorted = sortOrder.equalsIgnoreCase("asc")
                 ?Sort.by(sortBy).ascending()
                 :Sort.by(sortBy).descending();
@@ -84,39 +85,71 @@ public class ProductServiceImp implements ProductService{
         productResponse.setPageSize(products.getSize());
         productResponse.setTotalElements(products.getTotalElements());
         productResponse.setTotalPages(products.getTotalPages());
+        productResponse.setLastPage(products.isLast());
         return productResponse;
     }
 
+    //SERVICE - SEARCH PRODUCT BY CATEGORY
     @Override
-    public ProductResponse searchByCategory(Long categoryId) {
+    public ProductResponse searchByCategory(Long categoryId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Category", "id", categoryId));
-        List<Product> products = productRepository.findByCategoryOrderByProductPriceAsc(category);
-        if(products.isEmpty())
-            throw new APIException("No products found");
+
+        Sort sorted = sortOrder.equalsIgnoreCase("asc")
+                ?Sort.by(sortBy).ascending()
+                :Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sorted);
+        Page<Product> products = productRepository.findByCategoryOrderByProductPriceAsc(category, pageDetails);
+
+        if(products.isEmpty()){
+            throw new APIException("Product not found in " + category);
+        }
+
         List<ProductDTO> productDTOs = products.stream()
                 .map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOs);
+        productResponse.setPageNo(products.getNumber());
+        productResponse.setPageSize(products.getSize());
+        productResponse.setTotalElements(products.getTotalElements());
+        productResponse.setTotalPages(products.getTotalPages());
+        productResponse.setLastPage(products.isLast());
         return productResponse;
     }
 
+    //SERVICE - SEARCH PRODUCT BY KEYWORD
     @Override
-    public ProductResponse searchProductByKeyword(String keyword) {
-        List<Product> products = productRepository.findByProductNameLikeIgnoreCase('%'+keyword+'%');
-        if(products.isEmpty())
-            throw new APIException("No products found");
+    public ProductResponse searchProductByKeyword(String keyword, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+
+        Sort sorted = sortOrder.equalsIgnoreCase("asc")
+                ?Sort.by(sortBy).ascending()
+                :Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sorted);
+        Page<Product> products = productRepository.findByProductNameLikeIgnoreCase('%'+keyword+'%', pageDetails);
+
+        if(products.isEmpty()){
+            throw new APIException("Product not found with keyword " + keyword);
+        }
+
         List<ProductDTO> productDTOs = products.stream()
                 .map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
+
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOs);
+        productResponse.setPageNo(products.getNumber());
+        productResponse.setPageSize(products.getSize());
+        productResponse.setTotalElements(products.getTotalElements());
+        productResponse.setTotalPages(products.getTotalPages());
+        productResponse.setLastPage(products.isLast());
         return productResponse;
 
     }
 
+    //SERVICE - UPDATE PRODUCT
     @Override
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
         //Get the existing product from the database
@@ -137,6 +170,7 @@ public class ProductServiceImp implements ProductService{
         return modelMapper.map(savedProduct, ProductDTO.class);
     }
 
+    //SERVICE - DELETE PRODUCT
     @Override
     public ProductDTO deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
@@ -145,6 +179,7 @@ public class ProductServiceImp implements ProductService{
         return modelMapper.map(product, ProductDTO.class);
     }
 
+    //SERVICE - UPLOAD PRODUCT IMAGE
     @Override
     public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
         Product productFromDB = productRepository.findById(productId)
